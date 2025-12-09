@@ -21,46 +21,56 @@ ORB_PRESET = 'pico'  # Change to 'mini' for Mini Orb
 # - 'pico': 24-LED orb (24,12,6,1) on pin 16, brightness 20
 # - 'mini': 12-LED orb (12,6,1) on pin 19, brightness 40
 
-# Or use custom configuration (set ORB_PRESET = None):
-# ORB_PRESET = None
-# ORB_CUSTOM = {
-#     'ring_counts': [24, 12, 6, 1],
-#     'pin': 16,
-#     'status_leds': 0,
-#     'brightness': 20
-# }
-
-ORB_CUSTOM = None  # Only used if ORB_PRESET is None
-
-
-# ============================================================================
-# Helper function to create Orb instance
-# ============================================================================
-
 def create_orb():
-    """Create an Orb instance using the configured preset or custom settings."""
-    if ORB_PRESET is not None:
-        print("USING PRESET: ", ORB_PRESET)
-        return Orb(preset=ORB_PRESET)
-    elif ORB_CUSTOM is not None:
-        return Orb(**ORB_CUSTOM)
-    else:
-        raise ValueError("Either ORB_PRESET or ORB_CUSTOM must be configured")
+    """Create an Orb instance using the configured preset"""
+    return Orb(preset=ORB_PRESET)
 
 
 # ============================================================================
-# Example 1: Basic Ring and Axis Control
+# Single LED Iteration
 # ============================================================================
 
-def example_1_basics():
-    """Demonstrate basic ring and axis control."""
-    print("\n=== Example 1: Basic Ring and Axis Control ===\n")
+def single_LED_cycle():
+    """Cycle through each LED one at a time - basic hardware test."""
+    print("\n=== Single LED Cycle ===\n")
+
+    orb = create_orb()
+
+    try:
+        iteration = 0
+        while iteration < 2:  # Run through twice
+            for i in range(orb.numLEDs):
+                # Clear all LEDs
+                orb.pixelsFill(orb.black())
+
+                # Light current LED
+                orb.pixelSet(i, orb.red())
+                orb.pixelsShow()
+
+                print(f"  LED {i}/{orb.numLEDs-1}")
+                sleep(0.2)
+
+            iteration += 1
+            print(f"\nCompleted iteration {iteration}\n")
+
+    except KeyboardInterrupt:
+        print("\n(Interrupted by user)")
+
+    orb.clear_ornament(show=True)
+    print("\nExample complete!\n")
+
+# ============================================================================
+# Basic Ring Control
+# ============================================================================
+
+def example_rings():
+    """Demonstrate basic ring control."""
+    print("\n=== Basic Ring Control ===\n")
 
     orb = create_orb()
 
     print(f"Orb initialized:")
     print(f"  Rings: {orb.num_rings}")
-    print(f"  Axes: {orb.outer_count}")
     print(f"  Total LEDs: {orb.numLEDs}\n")
 
     # Clear to start
@@ -82,6 +92,25 @@ def example_1_basics():
     orb.clear_ornament(show=True)
     sleep(0.5)
 
+# ============================================================================
+# Basic Line Control
+# ============================================================================
+
+
+def example_lines():
+    """Demonstrate basic axes control."""
+    print("\n=== Basic axes Control ===\n")
+    
+    orb = create_orb()
+
+    print(f"Orb initialized:")
+    print(f"  Axes: {orb.outer_count}")
+    print(f"  Total LEDs: {orb.numLEDs}\n")
+
+    # Clear to start
+    orb.clear_ornament(show=True)
+    sleep(1)
+    
     # Light axes one at a time
     print("\nLighting axes one at a time...")
     for axis in range(min(12, orb.outer_count)):
@@ -97,12 +126,12 @@ def example_1_basics():
 
 
 # ============================================================================
-# Example 2: Line Drawing
+#  Axes Drawing
 # ============================================================================
 
-def example_2_lines():
+def example_axes():
     """Demonstrate line drawing across the orb."""
-    print("\n=== Example 2: Line Drawing ===\n")
+    print("\n=== Axes Drawing ===\n")
 
     orb = create_orb()
 
@@ -138,16 +167,67 @@ def example_2_lines():
     sleep(1)
     orb.clear_ornament(show=True)
 
-    print("\nExample 2 complete!\n")
+    print("\nExample complete!\n")
 
 
 # ============================================================================
-# Example 3: Built-in Animations
+# Segment Fill (Half Orb)
 # ============================================================================
 
-def example_3_builtin_animations():
+def example_segment_fill():
+    """Split orb into halves and fill with different colors."""
+    print("\n=== Segment Fill (Half Orb) ===\n")
+
+    orb = create_orb()
+
+    print("Splitting orb into halves and filling with colors...\n")
+
+    # Demo 1: Immediate fill
+    print("Demo 1: Immediate fill at axis 0")
+    above, below = orb.segment_by_axis(0, include_center=False)
+
+    orb.clear_ornament()
+    for pix in above:
+        orb.pixelSet(pix, orb.rgbColour(0, 160, 255))  # Cyan
+    for pix in below:
+        orb.pixelSet(pix, orb.rgbColour(255, 80, 0))   # Orange
+    orb.pixelsShow()
+
+    print(f"  Above pixels: {len(above)}")
+    print(f"  Below pixels: {len(below)}")
+    sleep(2)
+
+    # Demo 2: Animated fill
+    print("\nDemo 2: Animated fill at axis 6")
+    above, below = orb.segment_by_axis(6, include_center=False)
+
+    orb.clear_ornament(show=True)
+    sleep(0.5)
+
+    print("  Filling above side...")
+    for pix in above:
+        orb.pixelSet(pix, orb.rgbColour(255, 50, 150))  # Pink
+        orb.pixelsShow()
+        sleep(0.02)
+
+    print("  Filling below side...")
+    for pix in below:
+        orb.pixelSet(pix, orb.rgbColour(50, 255, 100))  # Green
+        orb.pixelsShow()
+        sleep(0.02)
+
+    sleep(2)
+    orb.clear_ornament(show=True)
+
+    print("\nExample complete!\n")
+
+# ============================================================================
+# Built-in Animations
+# ============================================================================
+
+def example_builtin_animations():
     """Demonstrate built-in animation methods."""
-    print("\n=== Example 3: Built-in Animations ===\n")
+    print("\n=== Built-in Animations ===\n")
 
     orb = create_orb()
 
@@ -168,16 +248,16 @@ def example_3_builtin_animations():
     orb.clear_ornament(show=True)
     orb.rotate_axis((0, 0, 255), speed=0.05, duration=5)
 
-    print("\nExample 3 complete!\n")
+    print("\nExample complete!\n")
 
 
 # ============================================================================
-# Example 4: Multiple Comets
+# Multiple Comets
 # ============================================================================
 
-def example_4_comets():
+def example_comets():
     """Demonstrate comet animations."""
-    print("\n=== Example 4: Comet Animations ===\n")
+    print("\n=== Comet Animations ===\n")
 
     orb = create_orb()
 
@@ -209,16 +289,16 @@ def example_4_comets():
         print("\n(Interrupted by user)")
 
     orb.clear_ornament(show=True)
-    print("\nExample 4 complete!\n")
+    print("\nExample complete!\n")
 
 
 # ============================================================================
-# Example 5: Flame Effect
+# Flame Effect
 # ============================================================================
 
-def example_5_flame():
+def example_flame():
     """Demonstrate flame animation."""
-    print("\n=== Example 5: Flame Animation ===\n")
+    print("\n=== Flame Animation ===\n")
 
     orb = create_orb()
 
@@ -261,16 +341,16 @@ def example_5_flame():
         print("\n(Interrupted by user)")
 
     orb.clear_ornament(show=True)
-    print("\nExample 5 complete!\n")
+    print("\nExample complete!\n")
 
 
 # ============================================================================
-# Example 6: Rainbow Wave
+# Rainbow Wave
 # ============================================================================
 
-def example_6_rainbow_wave():
+def example_rainbow_wave():
     """Custom animation: rainbow wave rotating around rings."""
-    print("\n=== Example 6: Rainbow Wave ===\n")
+    print("\n=== Rainbow Wave ===\n")
 
     orb = create_orb()
 
@@ -302,204 +382,29 @@ def example_6_rainbow_wave():
         print("\n(Interrupted by user)")
 
     orb.clear_ornament(show=True)
-    print("\nExample 6 complete!\n")
+    print("\nExample complete!\n")
 
 
 # ============================================================================
-# Example 7: Single LED Iteration
+# Running examples
 # ============================================================================
 
-def example_7_single_led_iteration():
-    """Iterate through each LED one at a time - basic hardware test."""
-    print("\n=== Example 7: Single LED Iteration ===\n")
 
-    orb = create_orb()
+# Run all examples in sequence
 
-    print(f"Lighting each of {orb.numLEDs} LEDs individually...")
-    print("(Ctrl-C to stop)\n")
-
-    try:
-        iteration = 0
-        while iteration < 2:  # Run through twice
-            for i in range(orb.numLEDs):
-                # Clear all LEDs
-                orb.pixelsFill(orb.black())
-
-                # Light current LED
-                orb.pixelSet(i, orb.red())
-                orb.pixelsShow()
-
-                print(f"  LED {i}/{orb.numLEDs-1}")
-                sleep(0.2)
-
-            iteration += 1
-            print(f"\nCompleted iteration {iteration}\n")
-
-    except KeyboardInterrupt:
-        print("\n(Interrupted by user)")
-
-    orb.clear_ornament(show=True)
-    print("\nExample 7 complete!\n")
+# Basic functions
+# single_LED_cycle()
+# example_rings()
+# example_lines()
+# example_axes()
+example_segment_fill()
 
 
-# ============================================================================
-# Example 8: Segment Fill (Half Orb)
-# ============================================================================
+# More complex functions/animations/examples
+# example_builtin_animations()
+# example_comets()
+# example_rainbow_wave()
+example_flame()
 
-def example_8_segment_fill():
-    """Split orb into halves and fill with different colors."""
-    print("\n=== Example 8: Segment Fill (Half Orb) ===\n")
+print("All examples complete!")
 
-    orb = create_orb()
-
-    def segment_by_axis(axis, include_center=False):
-        """
-        Split orb into two halves around the given axis.
-        Returns (above_indices, below_indices).
-        The axis line and its opposite are excluded.
-        """
-        if orb.outer_count <= 1:
-            return ([], [])
-
-        k = axis % orb.outer_count
-        k_op = (k + orb.outer_count // 2) % orb.outer_count
-
-        # Get all axis columns
-        all_columns = {}
-        for j in range(orb.outer_count):
-            cols = orb.get_axis_indices(j, include_center=include_center)
-            all_columns[j] = cols
-
-        # Exclude the splitting axis and its opposite
-        all_columns[k] = []
-        all_columns[k_op] = []
-
-        # Collect "above" (clockwise from axis)
-        above = []
-        seen = set()
-        j = (k + 1) % orb.outer_count
-        while j != k_op:
-            for pix in all_columns.get(j, []):
-                if pix not in seen:
-                    above.append(pix)
-                    seen.add(pix)
-            j = (j + 1) % orb.outer_count
-
-        # Collect "below" (counter-clockwise from axis)
-        below = []
-        seen2 = set()
-        j = (k - 1) % orb.outer_count
-        while j != k_op:
-            for pix in all_columns.get(j, []):
-                if pix not in seen2:
-                    below.append(pix)
-                    seen2.add(pix)
-            j = (j - 1) % orb.outer_count
-
-        return above, below
-
-    print("Splitting orb into halves and filling with colors...\n")
-
-    # Demo 1: Immediate fill
-    print("Demo 1: Immediate fill at axis 0")
-    above, below = segment_by_axis(0, include_center=False)
-
-    orb.clear_ornament()
-    for pix in above:
-        orb.pixelSet(pix, orb.rgbColour(0, 160, 255))  # Cyan
-    for pix in below:
-        orb.pixelSet(pix, orb.rgbColour(255, 80, 0))   # Orange
-    orb.pixelsShow()
-
-    print(f"  Above pixels: {len(above)}")
-    print(f"  Below pixels: {len(below)}")
-    sleep(2)
-
-    # Demo 2: Animated fill
-    print("\nDemo 2: Animated fill at axis 6")
-    above, below = segment_by_axis(6, include_center=False)
-
-    orb.clear_ornament(show=True)
-    sleep(0.5)
-
-    print("  Filling above side...")
-    for pix in above:
-        orb.pixelSet(pix, orb.rgbColour(255, 50, 150))  # Pink
-        orb.pixelsShow()
-        sleep(0.02)
-
-    print("  Filling below side...")
-    for pix in below:
-        orb.pixelSet(pix, orb.rgbColour(50, 255, 100))  # Green
-        orb.pixelsShow()
-        sleep(0.02)
-
-    sleep(2)
-    orb.clear_ornament(show=True)
-
-    print("\nExample 8 complete!\n")
-
-
-# ============================================================================
-# Main Menu
-# ============================================================================
-
-def main():
-    """Run interactive example menu."""
-    print("\n" + "="*60)
-    print("GlowBit Orb Extension Library - Examples")
-    print("="*60)
-
-    examples = [
-        ("Basic Ring and Axis Control", example_1_basics),
-        ("Line Drawing", example_2_lines),
-        ("Built-in Animations", example_3_builtin_animations),
-        ("Multiple Comets", example_4_comets),
-        ("Flame Effect", example_5_flame),
-        ("Rainbow Wave", example_6_rainbow_wave),
-        ("Single LED Iteration", example_7_single_led_iteration),
-        ("Segment Fill (Half Orb)", example_8_segment_fill),
-    ]
-
-    while True:
-        print("\nSelect an example to run:")
-        for i, (name, _) in enumerate(examples, 1):
-            print(f"  {i}. {name}")
-        print("  0. Exit")
-
-        try:
-            choice = input("\nEnter choice (0-8): ").strip()
-            choice = int(choice)
-
-            if choice == 0:
-                print("\nGoodbye!")
-                break
-            elif 1 <= choice <= len(examples):
-                examples[choice - 1][1]()
-            else:
-                print("Invalid choice. Please try again.")
-
-        except ValueError:
-            print("Invalid input. Please enter a number.")
-        except KeyboardInterrupt:
-            print("\n\nGoodbye!")
-            break
-
-
-if __name__ == "__main__":
-    # Run all examples in sequence
-    # Uncomment to run the interactive menu instead:
-    # main()
-
-    example_1_basics()
-    example_2_lines()
-    example_3_builtin_animations()
-    example_4_comets()
-    example_5_flame()
-    example_6_rainbow_wave()
-    example_7_single_led_iteration()
-    example_8_segment_fill()
-
-    print("\n" + "="*60)
-    print("All examples complete!")
-    print("="*60 + "\n")
