@@ -465,6 +465,52 @@ class Orb(glowbit.stick):
         finally:
             self.clear_ornament(show=True)
 
+    def segment_by_axis(self, axis, include_center=False):
+        """
+        Split orb into two halves around the given axis.
+        Returns (above_indices, below_indices).
+        The axis line and its opposite are excluded.
+        """
+        if self.outer_count <= 1:
+            return ([], [])
+
+        k = axis % self.outer_count
+        k_op = (k + self.outer_count // 2) % self.outer_count
+
+        # Get all axis columns
+        all_columns = {}
+        for j in range(self.outer_count):
+            cols = self.get_axis_indices(j, include_center=include_center)
+            all_columns[j] = cols
+
+        # Exclude the splitting axis and its opposite
+        all_columns[k] = []
+        all_columns[k_op] = []
+
+        # Collect "above" (clockwise from axis)
+        above = []
+        seen = set()
+        j = (k + 1) % self.outer_count
+        while j != k_op:
+            for pix in all_columns.get(j, []):
+                if pix not in seen:
+                    above.append(pix)
+                    seen.add(pix)
+            j = (j + 1) % self.outer_count
+
+        # Collect "below" (counter-clockwise from axis)
+        below = []
+        seen2 = set()
+        j = (k - 1) % self.outer_count
+        while j != k_op:
+            for pix in all_columns.get(j, []):
+                if pix not in seen2:
+                    below.append(pix)
+                    seen2.add(pix)
+            j = (j - 1) % self.outer_count
+
+        return below, above
+
 
 def example_basic():
     """Basic example showing orb functionality."""
@@ -555,3 +601,4 @@ if __name__ == "__main__":
     # example_basic()
     # example_animations()
     pass
+
