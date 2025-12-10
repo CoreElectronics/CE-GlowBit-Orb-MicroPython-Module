@@ -37,6 +37,8 @@ def action_B():
     orb.set_ring(3, DARK_BLUE)
     orb.pixelsShow() # Update pixels
 
+# Ensure all LEDs are clear to begin with
+orb.clear_ornament(show=True)
 
 while True:
 
